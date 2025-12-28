@@ -1,0 +1,36 @@
+# Local development tools (DO NOT deploy)
+server.py
+tag-helper.html
+index-local.html
+index-deploy.html
+
+# Backup files
+*_backup.json
+*.bak
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Environment
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# Temporary files
+*.tmp
+*.temp
