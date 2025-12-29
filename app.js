@@ -6,6 +6,23 @@ let activeFilters = {
     colors: [],
     styles: []
 };
+let currentWardrobe = localStorage.getItem('currentWardrobe') || 'sankalpa';
+
+// Wardrobe configurations
+const wardrobeConfig = {
+    sankalpa: {
+        title: "Sankalpa's Wardrobe",
+        jsonFile: 'outfits-sankalpa.json',
+        imageFolder: 'Outfits Owned by Sankalpa',
+        categories: ['Top', 'Dress', 'Saree', 'Kurti', 'One-Piece', 'Other']
+    },
+    sanket: {
+        title: "Sanket's Wardrobe",
+        jsonFile: 'outfits-sanket.json',
+        imageFolder: 'Outfits Owned by Sanket',
+        categories: ['Shirt (Full Sleeve)', 'Shirt (Half Sleeve)', 'T-Shirt (Full Sleeve)', 'T-Shirt (Half Sleeve)', 'Kurta', 'Jeans', 'Other']
+    }
+};
 
 // Color palette mapping
 const colorPalette = {
@@ -24,8 +41,39 @@ const colorPalette = {
     'Multicolor': 'linear-gradient(135deg, #EF4444, #F59E0B, #3B82F6)'
 };
 
+// Switch wardrobe
+window.switchWardrobe = function(wardrobe) {
+    currentWardrobe = wardrobe;
+    localStorage.setItem('currentWardrobe', wardrobe);
+    
+    // Update UI
+    document.getElementById('wardrobeTitle').textContent = wardrobeConfig[wardrobe].title;
+    document.getElementById('toggleSankalpa').classList.toggle('active', wardrobe === 'sankalpa');
+    document.getElementById('toggleSanket').classList.toggle('active', wardrobe === 'sanket');
+    
+    // Reset filters and clear active filter display
+    activeFilters = { categories: [], colors: [], styles: [] };
+    document.getElementById('activeFilterTags').innerHTML = '';
+    
+    // Show loading
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('gallery').innerHTML = '';
+    
+    // Reload with new wardrobe data
+    loadOutfits().then(() => {
+        initializeFilters();
+        renderGallery();
+    });
+}
+
 // Initialize app
 document.addEventListener('DOMContentLoaded', async () => {
+    // Set initial wardrobe UI state without reload
+    document.getElementById('wardrobeTitle').textContent = wardrobeConfig[currentWardrobe].title;
+    document.getElementById('toggleSankalpa').classList.toggle('active', currentWardrobe === 'sankalpa');
+    document.getElementById('toggleSanket').classList.toggle('active', currentWardrobe === 'sanket');
+    
+    // Load initial data
     await loadOutfits();
     initializeFilters();
     renderGallery();
@@ -35,7 +83,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load outfits from JSON
 async function loadOutfits() {
     try {
-        const response = await fetch('outfits.json');
+        const config = wardrobeConfig[currentWardrobe];
+        const response = await fetch(config.jsonFile);
         allOutfits = await response.json();
         filteredOutfits = [...allOutfits];
         updateOutfitCount();
@@ -46,7 +95,7 @@ async function loadOutfits() {
             <div class="text-center py-16">
                 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="mx-auto mb-4 text-gray-300"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/></svg>
                 <h3 class="text-xl font-semibold text-gray-800 mb-2">Could not load outfits</h3>
-                <p class="text-gray-500 mb-6">Make sure outfits.json exists and you're using Live Server</p>
+                <p class="text-gray-500 mb-6">Make sure ${wardrobeConfig[currentWardrobe].jsonFile} exists and you're using Live Server</p>
                 <a href="tag-helper.html" class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg font-medium transition">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
                     Create outfits.json
@@ -65,6 +114,7 @@ function initializeFilters() {
 
     // Render category filters
     const categoryContainer = document.getElementById('categoryFilters');
+    categoryContainer.innerHTML = ''; // Clear existing filters
     categories.forEach(category => {
         const btn = createFilterButton(category, 'category');
         categoryContainer.appendChild(btn);
@@ -72,6 +122,7 @@ function initializeFilters() {
 
     // Render color filters
     const colorContainer = document.getElementById('colorFilters');
+    colorContainer.innerHTML = ''; // Clear existing filters
     colors.forEach(color => {
         const chip = createColorChip(color);
         colorContainer.appendChild(chip);
@@ -79,6 +130,7 @@ function initializeFilters() {
 
     // Render style filters
     const styleContainer = document.getElementById('styleFilters');
+    styleContainer.innerHTML = ''; // Clear existing filters
     styles.forEach(style => {
         const btn = createFilterButton(style, 'style');
         styleContainer.appendChild(btn);
@@ -203,7 +255,8 @@ function createOutfitCard(outfit, index) {
     const card = document.createElement('div');
     card.className = 'outfit-card rounded-xl overflow-hidden border border-gray-200 fade-in';
     
-    const imagePath = `./Outfits Owned by Sankalpa/${outfit.filename}`;
+    const config = wardrobeConfig[currentWardrobe];
+    const imagePath = `./${config.imageFolder}/${outfit.filename}`;
     
     card.innerHTML = `
         <a href="${imagePath}" 
@@ -390,7 +443,8 @@ function showSurpriseOutfit(outfit) {
     modal.style.overflow = 'auto';
     modal.style.cursor = 'pointer';
     
-    const imagePath = `./Outfits Owned by Sankalpa/${outfit.filename}`;
+    const config = wardrobeConfig[currentWardrobe];
+    const imagePath = `./${config.imageFolder}/${outfit.filename}`;
     
     modal.innerHTML = `
         <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full my-8" style="animation: fadeIn 0.3s ease-out; cursor: default;" onclick="event.stopPropagation();">
